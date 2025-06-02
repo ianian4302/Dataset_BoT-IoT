@@ -4,7 +4,7 @@
 python -m venv venv
 ```
 
-# 在 Windows 上啟用虛擬環境
+# 在 Windows 上啟用虛擬環境（可選）
 
 ```
 venv\Scripts\activate
@@ -18,9 +18,6 @@ pip install -r requirements.txt
 
 # 依賴套件清單
 
-requirements.txt
-
 ```
 python src/app.py
-python src/generate_ppt.py
 ```
