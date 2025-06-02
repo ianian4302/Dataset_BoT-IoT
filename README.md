@@ -20,4 +20,5 @@ pip install -r requirements.txt
 
 ```
 python src/app.py
+python src/app1.py
 ```
