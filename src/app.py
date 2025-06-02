@@ -46,17 +46,16 @@ def load_and_explore_data(file_path):
 def preprocess_data(df, target_col):
     """資料預處理"""
     print("\n== 資料預處理 ==")
-    
     # 分離特徵與標籤
-    X = df.drop(columns=[target_col])
+    # 確保 target_col 及所有標籤相關欄位不在 X
+    exclude_cols = set([target_col, 'category', 'subcategory', 'label', 'attack'])
+    exclude_cols = [col for col in exclude_cols if col in df.columns]
+    X = df.drop(columns=exclude_cols)
     y = df[target_col]
-    
     # 處理類別型特徵
     cat_cols = X.select_dtypes(include=['object']).columns
-    
     if not cat_cols.empty:
         print(f"處理類別型特徵: {cat_cols.tolist()}")
-        
         # 識別高基數特徵 (例如IP地址、連接埠)
         high_cardinality_cols = []
         for col in cat_cols:
@@ -64,37 +63,27 @@ def preprocess_data(df, target_col):
             print(f"  - {col}: {unique_count} 個唯一值")
             if unique_count > 100:  # 閾值可調整
                 high_cardinality_cols.append(col)
-        
         if high_cardinality_cols:
             print(f"\n高基數特徵 (跳過one-hot編碼): {high_cardinality_cols}")
-            
-            # 標籤編碼高基數特徵，先轉成字串避免型別錯誤
             from sklearn.preprocessing import LabelEncoder
             for col in high_cardinality_cols:
                 le = LabelEncoder()
                 X[col] = le.fit_transform(X[col].astype(str))
-            
-            # 僅對低基數特徵進行one-hot編碼
             low_cardinality_cols = [col for col in cat_cols if col not in high_cardinality_cols]
             if low_cardinality_cols:
                 print(f"執行one-hot編碼: {low_cardinality_cols}")
                 X = pd.get_dummies(X, columns=low_cardinality_cols)
         else:
-            # 若沒有高基數特徵，對所有類別型特徵進行one-hot編碼
             X = pd.get_dummies(X, columns=cat_cols)
-
     # one-hot後補齊所有NaN為0，避免後續模型報錯
     X = X.fillna(0)
-
     # 分割訓練集和測試集
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     print(f"訓練集: {X_train.shape[0]} 筆資料, 測試集: {X_test.shape[0]} 筆資料")
-    
     # 特徵標準化
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-    
     return X_train_scaled, X_test_scaled, y_train, y_test, X.columns
 
 def train_and_evaluate(X_train, X_test, y_train, y_test, feature_names):
