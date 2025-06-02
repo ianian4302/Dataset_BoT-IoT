@@ -47,7 +47,10 @@ plt.savefig('output/original_label_distribution.png')
 plt.close()
 
 # 5. SMOTE 平衡資料
-X = df.drop(columns=[target_col])
+# 確保 target_col 不在 X，並排除所有標籤相關欄位
+exclude_cols = set([target_col, 'category', 'subcategory', 'label', 'attack'])
+exclude_cols = [col for col in exclude_cols if col in df.columns]
+X = df.drop(columns=exclude_cols)
 y = df[target_col]
 if y.nunique() > 2:
     le = LabelEncoder()
